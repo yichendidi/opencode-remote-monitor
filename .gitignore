@@ -1,0 +1,21 @@
+# 私有配置与本地临时文件（请勿提交到公开仓库）
+# 你的真实 IP / 密码等只保留在本地，不要上传
+
+# 本机专用版启动脚本（含真实 Tailscale IP 与密码，禁止上传）
+启动-本机版.cmd
+启动*.cmd
+# 本地私有配置（如果拆分出来的话）
+config.cmd
+.env
+*.local.cmd
+
+# 日志
+*.log
+*.err
+opencode*.txt
+
+# 系统
+Thumbs.db
+Desktop.ini
+.DS_Store
+node_modules/
