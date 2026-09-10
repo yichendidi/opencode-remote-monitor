@@ -8,6 +8,8 @@
 config.cmd
 .env
 *.local.cmd
+wechat-push.json
+wecom-bridge.json
 
 # 日志
 *.log

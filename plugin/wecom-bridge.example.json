@@ -1,0 +1,22 @@
+{
+  "_comment": "复制为 wecom-bridge.json 并填入真实值（该文件已被 .gitignore 排除，不会提交）",
+  "port": 8787,
+  "token": "用企业微信后台生成的 Token",
+  "encodingAESKey": "43位、仅英文和数字的 EncodingAESKey",
+  "corpId": "企业ID",
+  "agentId": "自建应用 AgentId",
+  "secret": "自建应用 Secret",
+  "opencode": {
+    "baseUrl": "http://127.0.0.1:4096",
+    "username": "opencode",
+    "password": "你的共享 server 密码"
+  },
+  "inject": {
+    "mode": "tui",
+    "toast": true
+  },
+  "reply": {
+    "enabled": true,
+    "windowMs": 300000
+  }
+}
