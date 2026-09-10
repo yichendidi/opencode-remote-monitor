@@ -16,7 +16,6 @@
     "toast": true
   },
   "reply": {
-    "enabled": true,
-    "windowMs": 300000
+    "enabled": true
   }
 }

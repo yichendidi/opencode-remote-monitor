@@ -10,6 +10,7 @@ config.cmd
 *.local.cmd
 wechat-push.json
 wecom-bridge.json
+wecom-bridge.state.json
 
 # 日志
 *.log

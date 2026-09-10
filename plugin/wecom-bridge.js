@@ -187,8 +187,34 @@ async function sendAppText(toUser, content) {
 }
 
 // ---------- 事件订阅：agent 完成一轮后回复 ----------
-const pending = new Map() // sessionID -> { user, at }
+// 每轮 session.idle 都把助手回复发到企业微信应用，收件人 = 最近一次发消息的人。
+const STATE_FILE = path.join(__dirname, "wecom-bridge.state.json")
 let lastUser = ""
+try {
+  if (fs.existsSync(STATE_FILE)) lastUser = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")).lastUser || ""
+} catch {}
+function saveState() {
+  try {
+    fs.writeFileSync(STATE_FILE, JSON.stringify({ lastUser }), "utf8")
+  } catch {}
+}
+
+const lastIdleSent = new Map()
+function idleThrottled(sid) {
+  const now = Date.now()
+  if (now - (lastIdleSent.get(sid) || 0) < 3000) return true
+  lastIdleSent.set(sid, now)
+  return false
+}
+
+async function sessionMeta(sid) {
+  try {
+    const r = await oc(`/session/${sid}`)
+    return r.data?.data ?? r.data ?? {}
+  } catch {
+    return {}
+  }
+}
 
 async function subscribeEvents() {
   const url = cfg.opencode.baseUrl + "/event"
@@ -220,12 +246,12 @@ async function subscribeEvents() {
         }
         if (ev?.type === "session.idle") {
           const sid = ev.properties?.sessionID
-          const p = sid && pending.get(sid)
-          if (p && Date.now() - p.at < (cfg.reply?.windowMs || 300000)) {
-            pending.delete(sid)
-            const text = await lastAssistantText(sid)
-            if (text) await sendAppText(p.user, "🤖 opencode:\n" + text)
-          }
+          if (!sid || !cfg.reply?.enabled || !lastUser) continue
+          if (idleThrottled(sid)) continue
+          const meta = await sessionMeta(sid)
+          if (meta.parentID) continue
+          const text = await lastAssistantText(sid)
+          if (text) await sendAppText(lastUser, "🤖 opencode:\n" + text)
         }
       }
     }
@@ -242,15 +268,14 @@ function handleMessage(xml) {
   const content = extractXml(xml, "Content")
   log("收到消息", "type=" + msgType, "from=" + from, "content=" + JSON.stringify(content).slice(0, 200))
   if (msgType !== "text" || !content) return
-  lastUser = from
+  if (from) {
+    lastUser = from
+    saveState()
+  }
   ;(async () => {
     const r = await injectText(content)
     log("注入", r.ok ? "OK" : "FAIL", "session=" + (r.sessionID || ""), "status=" + (r.status || r.error || ""))
-    if (r.ok) {
-      await toast("已收到企业微信消息，正在终端处理…", "success", "企业微信")
-      if (r.sessionID && from) pending.set(r.sessionID, { user: from, at: Date.now() })
-      else if (from) pending.set("*", { user: from, at: Date.now() })
-    }
+    if (r.ok) await toast("已收到企业微信消息，正在终端处理…", "success", "企业微信")
   })()
 }
 

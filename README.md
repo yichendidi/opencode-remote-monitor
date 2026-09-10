@@ -50,7 +50,7 @@ opencode 每个进程默认各自起一个 server、各自一条**事件总线**
  ③ 双向桥接（企业微信 ⇄ 终端）
     企业微信自建应用 ──回调──▶ Cloudflare 隧道 ──▶ wecom-bridge.js :8787
         ──/tui/append-prompt + /tui/submit-prompt──▶ opencode server :4096
-        ◀──应用消息 API──（agent 完成一轮后回传回复）
+        ◀──应用消息 API──（每轮完成都把回复推送到企业微信应用）
 ```
 
 ---
@@ -286,11 +286,11 @@ agent 回复完后，企业微信里会收到回复。
 | `port` | 桥接服务本地端口 | `8787` |
 | `token` | 企业微信后台的回调 Token | 必填 |
 | `encodingAESKey` | 43 位、仅英文和数字 | 必填 |
-| `corpId` / `agentId` / `secret` | 自建应用凭据（用于回传回复） | 必填 |
+| `corpId` / `agentId` / `secret` | 自建应用凭据（用于把回复发到应用） | 必填 |
 | `inject.mode` | `tui`（注入当前终端）/ `session`（注入最近活跃会话） | `tui` |
 | `inject.toast` | 注入时在终端弹提示 | `true` |
-| `reply.enabled` | agent 完成后把回复发回企业微信 | `true` |
-| `reply.windowMs` | 收到消息后多久内视为“对话中” | `300000` |
+| `reply.enabled` | 每轮 agent 完成后，把回复发到企业微信**应用** | `true` |
+| （收件人） | 最近一次给应用发消息的人，持久化在 `wecom-bridge.state.json` | — |
 
 ### 排障
 - **发消息无反应**：看 `wecom-bridge.log` 有无 `收到消息`；无则检查后台是否勾选“用户发送的普通消息”、URL 是否仍有效。

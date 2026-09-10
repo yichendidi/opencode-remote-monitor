@@ -44,7 +44,7 @@ curl -u opencode:你的密码 "http://<TAILIP>:4096/session"
 ## 已部署：企业微信双向桥接（企业微信 → 终端）
 - 桥接服务：`C:\Users\yichen\.config\opencode\wecom-bridge.js`（源码同步在项目 `plugin/wecom-bridge.js`）。
 - 配置：同目录 `wecom-bridge.json`（含 Token/EncodingAESKey/CorpID/AgentId/Secret，已被 gitignore）。
-- 链路：企业微信自建应用回调 → Cloudflare 快速隧道 → 桥接服务验签解密 → opencode `/tui/append-prompt` + `/tui/submit-prompt` 注入当前终端会话；agent 完成一轮后用应用消息 API 回传回复。
+- 链路：企业微信自建应用回调 → Cloudflare 快速隧道 → 桥接服务验签解密 → opencode `/tui/append-prompt` + `/tui/submit-prompt` 注入当前终端会话；每轮 agent 完成后把回复经应用消息 API 推送到企业微信应用（收件人=最近发消息的人，存于 `wecom-bridge.state.json`）。
 - 端口：桥接服务监听 `127.0.0.1:8787`；隧道：`cloudflared tunnel --url http://127.0.0.1:8787`。
 - 日志：`~/.config/opencode/wecom-bridge.log`（关键行：`GET 验证成功` / `收到消息` / `注入 OK` / `reply send`）。
 - 回调 URL 填在企业微信「自建应用 → 接收消息 → 设置API接收」，必须勾选“用户发送的普通消息”。
